@@ -83,7 +83,6 @@ class Google_crawller(Process):
 
             except Exception as err:
                 print(err)
-                raise
 
 
 class Downloader(Process):
@@ -96,22 +95,26 @@ class Downloader(Process):
         if url.startswith("http://") or url.startswith("https://"):
             return url
             
-        return "http://{}".format(url)
+        return "https://{}".format(url)
 
     def run(self):
-        while True:
-            url = self._pdf_url_queue.get()
-            last = url.split('/')[-1]
-            filename = parse.unquote(last.split('.')[0]) +'.pdf'
-            full_path = self._directory + '/' + filename
-            url = self._validate_url(url)
-            print(url, full_path)
-            
-            if not os.path.exists(full_path):
-                urllib.request.urlretrieve(url, full_path)
+        while self._pdf_url_queue.empty():
+            time.sleep(1)
+        while not self._pdf_url_queue.empty():
+            try:
+                url = self._pdf_url_queue.get()
+                last = url.split('/')[-1]
+                filename = parse.unquote(last.split('.')[0]) +'.pdf'
+                full_path = self._directory + '/' + filename
+                url = self._validate_url(url)
+                print(url, full_path)
+                
+                if not os.path.exists(full_path):
+                    urllib.request.urlretrieve(url, full_path)
+            except Exception as err:
+                print(err)
 
-
-def download(term_list, os="mac", directory="./pdf", num_crawller=1, num_downloader=1):
+def download(term_list, os="mac", directory="./pdf", num_crawller=2, num_downloader=4):
     term_queue = Queue()
     pdf_url_queue = Queue()
     [term_queue.put(term) for term in term_list]
@@ -127,6 +130,4 @@ def download(term_list, os="mac", directory="./pdf", num_crawller=1, num_downloa
 
 
 if __name__ == '__main__':
-    download(["딥러닝"])
-    while True:
-        pass
+    download(["1", "2", "3", "4", "5"])
