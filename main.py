@@ -18,7 +18,7 @@ class Google_crawller(Process):
 
         self._next = False
         self._open_chrome(os)
-        self._duration = 10
+        self._duration = 15
 
         while self._driver is None:
             time.sleep(3)
@@ -33,17 +33,10 @@ class Google_crawller(Process):
 
         driver = webdriver.Chrome(_driver_path)
         driver.implicitly_wait(3)
-        driver.get('https://google.com')
         self._driver = driver
-    
-    def _return_home(self):
-        self._driver.get('https://google.com')
 
     def _search_term(self, search_term):
-        self._driver.find_element_by_id('lst-ib').send_keys('{} filetype:pdf'.format(search_term))
-        time.sleep(self._duration)
-        self._driver.find_element_by_name('btnK').submit()
-        time.sleep(self._duration)
+        self._driver.get('https://google.com/search?num=100&start=1&q={}'.format(search_term))
 
     def _get_result(self):
 
@@ -69,7 +62,6 @@ class Google_crawller(Process):
     def run(self):
         while not self._term_queue.empty():
             try:
-                self._return_home()
                 term = self._term_queue.get()
                 self._search_term(term)
                 _next = self._chk_nex_page()
@@ -130,4 +122,4 @@ def download(term_list, os="mac", directory="./pdf", num_crawller=2, num_downloa
 
 
 if __name__ == '__main__':
-    download(["1", "2", "3", "4", "5"])
+    download(["검색어1", "검색어12", "3", "4", "5"])
