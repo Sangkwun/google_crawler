@@ -37,7 +37,7 @@ class Google_crawler(Process):
         self._driver = driver
 
     def _search_term(self, search_term):
-        self._driver.get('https://google.com/search?num=100&start=1&q={}'.format(search_term))
+        self._driver.get('https://google.com/search?num=100&start=1&q={} filetype:pdf'.format(search_term))
 
     def _get_result(self):
 
