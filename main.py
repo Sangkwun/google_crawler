@@ -1,5 +1,6 @@
 import os
 import time
+import argparse
 import urllib.request
 
 from selenium import webdriver
@@ -9,10 +10,10 @@ from selenium.common.exceptions import NoSuchElementException
 from urllib import parse
 
 
-class Google_crawller(Process):
+class Google_crawler(Process):
     def __init__(self, term_queue, pdf_url_queue, os):
 
-        super(Google_crawller, self).__init__()  
+        super(Google_crawler, self).__init__()  
         self._term_queue = term_queue
         self._pdf_url_queue = pdf_url_queue
 
@@ -30,7 +31,7 @@ class Google_crawller(Process):
             _driver_path = "./driver/chromedriver_mac"
         else:
             _driver_path = "./driver/chromedriver_linux"
-
+        print(_driver_path, os)
         driver = webdriver.Chrome(_driver_path)
         driver.implicitly_wait(3)
         self._driver = driver
@@ -106,20 +107,39 @@ class Downloader(Process):
             except Exception as err:
                 print(err)
 
-def download(term_list, os="mac", directory="./pdf", num_crawller=2, num_downloader=4):
+def download(
+        term_list, os,
+        directory="./pdf",
+        num_crawler=1,
+        num_downloader=4
+    ):
+    
     term_queue = Queue()
     pdf_url_queue = Queue()
     [term_queue.put(term) for term in term_list]
 
     downloaders = [Downloader(pdf_url_queue=pdf_url_queue, directory=directory) for i in range(num_downloader)]
-    crawllers = [Google_crawller(term_queue=term_queue, pdf_url_queue=pdf_url_queue, os=os) for i in range(num_crawller)]
+    crawlers = [Google_crawler(term_queue=term_queue, pdf_url_queue=pdf_url_queue, os=os) for i in range(num_crawler)]
 
-    for crawller in crawllers:
-        crawller.start()
+    for crawler in crawlers:
+        crawler.start()
 
     for downloader in downloaders:
         downloader.start()
 
 
 if __name__ == '__main__':
-    download(["검색어1", "검색어12", "3", "4", "5"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--terms', type=str, help="terms list in string like 'term1,term2,term3'")
+    parser.add_argument('--dir', type=str, default="./pdf")
+    parser.add_argument('--num_crawler', type=int, default=1)
+    parser.add_argument('--num_downloader', type=int, default=4)
+    parser.add_argument('--os', type=str, default="window")
+    args = parser.parse_args()
+
+    download(
+        args.terms.split(','),
+        os=args.os, directory=args.dir,
+        num_crawler=args.num_crawler,
+        num_downloader=args.num_downloader
+        )
